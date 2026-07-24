@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "cohort": {
+      "command": "npx",
+      "args": [
+        "cohort-mcp"
+      ],
+      "env": {
+        "AGENTIC_CONFIG_DIR": "/Users/pruthvisankhe/Cohort/packages/cli/vendor/config"
+      }
+    }
+  }
+}

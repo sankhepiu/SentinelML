@@ -1,0 +1,33 @@
+.cohort/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# ML artifacts & data (tracked via .gitkeep placeholders, not content)
+ml/data/raw/*
+!ml/data/raw/.gitkeep
+ml/data/processed/*
+!ml/data/processed/.gitkeep
+ml/models/artifacts/*
+!ml/models/artifacts/.gitkeep
+*.joblib
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# OS
+.DS_Store
