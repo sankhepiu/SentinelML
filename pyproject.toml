@@ -9,7 +9,12 @@ dependencies = [
     "numpy>=2.0",
     "xgboost>=2.1",
     "joblib>=1.4",
+    "matplotlib>=3.11.1",
+    "seaborn>=0.13.2",
 ]
+
+[project.scripts]
+sentinel = "ml.cli:main"
 
 [build-system]
 requires = ["hatchling"]

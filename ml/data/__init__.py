@@ -1,1 +1,1 @@
-"""CICIDS2017 dataset ingestion and loading. Implemented starting M1."""
+"""CICIDS2017 dataset loading and data profiling (M1: EDA only, no cleaning/training)."""
