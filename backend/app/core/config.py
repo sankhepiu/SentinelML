@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     cors_allow_origins: list[str] = ["http://localhost:5173"]
     model_registry_path: str = "../ml/models/artifacts"
+    # Pin a specific trained-model version (e.g. "v2") instead of always
+    # resolving to the latest one under model_registry_path -- useful for
+    # rolling back, or for deployments that want an explicit, auditable
+    # version rather than "whatever was trained most recently."
+    model_version: str | None = None
 
     @property
     def resolved_model_registry_path(self) -> Path:

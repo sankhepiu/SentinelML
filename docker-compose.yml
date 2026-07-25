@@ -1,0 +1,56 @@
+# Local development / demo stack. `docker compose up --build`, then open
+# http://localhost:8080. See README.md for the full walkthrough and
+# deployment (as opposed to local-compose) instructions.
+#
+# The backend needs trained model artifacts to actually serve predictions
+# (see ml/preprocessing/README.md and ml/training/README.md) -- they're
+# gitignored and mounted read-only here rather than baked into the image,
+# so retraining doesn't require a rebuild. Without them the backend still
+# starts; /api/v1/ready and the prediction endpoints just report 503 until
+# `uv run sentinel preprocess` + `uv run sentinel train` have been run at
+# least once on the host.
+#
+# Every ${VAR:-default} below is overridable via a root-level `.env` file
+# (Compose loads it automatically -- no `env_file:` directive needed; see
+# .env.example) or `SOME_VAR=... docker compose up`.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      SENTINELML_ENVIRONMENT: ${SENTINELML_ENVIRONMENT:-docker-compose}
+      SENTINELML_LOG_LEVEL: ${SENTINELML_LOG_LEVEL:-INFO}
+      # A falsy/empty value here correctly falls back to "latest" (see
+      # ml/models/registry.py's `version or self.latest_version()`) --
+      # unlike CORS_ALLOW_ORIGINS below, this is safe to default empty.
+      SENTINELML_MODEL_VERSION: ${SENTINELML_MODEL_VERSION:-}
+      # Not given a blank default: it's a JSON array, and pydantic-settings
+      # fails to parse an empty string as one -- omit the var entirely
+      # (leave commented) to keep the code's own default, or set a full
+      # JSON array in .env, e.g. SENTINELML_CORS_ALLOW_ORIGINS=["https://example.com"]
+      # SENTINELML_CORS_ALLOW_ORIGINS: ${SENTINELML_CORS_ALLOW_ORIGINS}
+    volumes:
+      - ./ml/models/artifacts:/app/ml/models/artifacts:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

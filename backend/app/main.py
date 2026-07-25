@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     try:
-        predictor = Predictor.from_registry(settings.resolved_model_registry_path)
+        predictor = Predictor.from_registry(
+            settings.resolved_model_registry_path, version=settings.model_version
+        )
         app.state.predictor = predictor
         app.state.predictor_error = None
         logger.info(

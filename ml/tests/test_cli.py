@@ -1,3 +1,5 @@
+import pytest
+
 from ml.cli import _build_parser
 
 
@@ -143,16 +145,21 @@ def test_serve_subcommand_accepts_overrides():
 def test_serve_subcommand_invokes_uvicorn_with_expected_command(monkeypatch):
     captured = {}
 
-    def fake_run(cmd, cwd, check):
+    class _FakeProcess:
+        def send_signal(self, signum):
+            captured.setdefault("signals", []).append(signum)
+
+        def wait(self):
+            return 0
+
+    def fake_popen(cmd, cwd):
         captured["cmd"] = cmd
         captured["cwd"] = cwd
+        return _FakeProcess()
 
-        class _Result:
-            returncode = 0
-
-        return _Result()
-
-    monkeypatch.setattr("subprocess.run", fake_run)
+    monkeypatch.setattr("subprocess.Popen", fake_popen)
+    # Don't let _run_serve install real handlers on the pytest process itself.
+    monkeypatch.setattr("signal.signal", lambda signum, handler: None)
 
     parser = _build_parser()
     args = parser.parse_args(["serve", "--host", "0.0.0.0", "--port", "9000"])
@@ -164,3 +171,56 @@ def test_serve_subcommand_invokes_uvicorn_with_expected_command(monkeypatch):
     assert "--no-access-log" in captured["cmd"]
     assert "--reload" not in captured["cmd"]
     assert captured["cwd"].name == "backend"
+
+
+def test_serve_subcommand_forwards_sigterm_to_uvicorn_and_exits_cleanly(monkeypatch):
+    import signal
+
+    class _FakeProcess:
+        def __init__(self):
+            self.signals_received: list[int] = []
+
+        def send_signal(self, signum):
+            self.signals_received.append(signum)
+
+        def wait(self):
+            return 0
+
+    fake_process = _FakeProcess()
+    monkeypatch.setattr("subprocess.Popen", lambda cmd, cwd: fake_process)
+
+    registered_handlers = {}
+
+    def fake_signal(signum, handler):
+        registered_handlers[signum] = handler
+
+    monkeypatch.setattr("signal.signal", fake_signal)
+
+    parser = _build_parser()
+    args = parser.parse_args(["serve"])
+    args.func(args)
+
+    assert signal.SIGTERM in registered_handlers
+    assert signal.SIGINT in registered_handlers
+
+    registered_handlers[signal.SIGTERM](signal.SIGTERM, None)
+    assert fake_process.signals_received == [signal.SIGTERM]
+
+
+def test_serve_subcommand_exits_nonzero_when_uvicorn_exits_nonzero(monkeypatch):
+    class _FakeProcess:
+        def send_signal(self, signum):
+            pass
+
+        def wait(self):
+            return 3
+
+    monkeypatch.setattr("subprocess.Popen", lambda cmd, cwd: _FakeProcess())
+    monkeypatch.setattr("signal.signal", lambda signum, handler: None)
+
+    parser = _build_parser()
+    args = parser.parse_args(["serve"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        args.func(args)
+    assert exc_info.value.code == 3
