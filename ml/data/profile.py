@@ -15,8 +15,13 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-DEFAULT_LOW_VARIANCE_THRESHOLD = 0.01
-DEFAULT_CORRELATION_THRESHOLD = 0.95
+from ml.data.feature_stats import (
+    DEFAULT_CORRELATION_THRESHOLD,
+    DEFAULT_LOW_VARIANCE_THRESHOLD,
+    find_constant_columns,
+    find_highly_correlated_pairs,
+    find_low_variance_columns,
+)
 
 
 @dataclass
@@ -58,54 +63,6 @@ def _to_native(obj: Any) -> Any:
     return obj
 
 
-def _find_constant_columns(df: pd.DataFrame) -> list[str]:
-    return [col for col in df.columns if df[col].nunique(dropna=False) <= 1]
-
-
-def _find_low_variance_columns(
-    df: pd.DataFrame, numeric_cols: list[str], exclude: set[str], threshold: float
-) -> dict[str, float]:
-    """Min-max normalized variance below `threshold`, excluding constant columns.
-
-    Raw variance is scale-dependent (a column measured in bytes will always
-    look "higher variance" than one measured in seconds), so columns are
-    normalized to [0, 1] before comparing.
-    """
-    low_variance = {}
-    for col in numeric_cols:
-        if col in exclude:
-            continue
-        series = df[col].replace([np.inf, -np.inf], np.nan).dropna()
-        if series.empty:
-            continue
-        col_min, col_max = series.min(), series.max()
-        if col_max == col_min:
-            continue
-        normalized = (series - col_min) / (col_max - col_min)
-        variance = float(normalized.var())
-        if variance < threshold:
-            low_variance[col] = round(variance, 6)
-    return low_variance
-
-
-def _find_highly_correlated_pairs(
-    df: pd.DataFrame, numeric_cols: list[str], threshold: float
-) -> list[dict[str, Any]]:
-    if len(numeric_cols) < 2:
-        return []
-    corr = df[numeric_cols].replace([np.inf, -np.inf], np.nan).corr(numeric_only=True)
-    pairs = []
-    for i, col_a in enumerate(corr.columns):
-        for col_b in corr.columns[i + 1 :]:
-            value = corr.loc[col_a, col_b]
-            if pd.notna(value) and abs(value) >= threshold:
-                pairs.append(
-                    {"feature_a": col_a, "feature_b": col_b, "correlation": round(float(value), 4)}
-                )
-    pairs.sort(key=lambda p: abs(p["correlation"]), reverse=True)
-    return pairs
-
-
 def generate_profile(
     df: pd.DataFrame,
     *,
@@ -142,11 +99,11 @@ def generate_profile(
 
     summary_statistics = df[numeric_cols].describe().to_dict() if numeric_cols else {}
 
-    constant_columns = _find_constant_columns(df)
-    low_variance_columns = _find_low_variance_columns(
+    constant_columns = find_constant_columns(df)
+    low_variance_columns = find_low_variance_columns(
         df, numeric_cols, exclude=set(constant_columns), threshold=low_variance_threshold
     )
-    highly_correlated_pairs = _find_highly_correlated_pairs(
+    highly_correlated_pairs = find_highly_correlated_pairs(
         df, numeric_cols, threshold=correlation_threshold
     )
 
