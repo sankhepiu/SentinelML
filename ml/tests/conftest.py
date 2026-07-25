@@ -55,3 +55,21 @@ def cicids_like_df() -> pd.DataFrame:
     df = pd.concat([df, df.iloc[:5]], ignore_index=True)
 
     return df
+
+
+@pytest.fixture
+def classification_arrays() -> tuple[pd.DataFrame, np.ndarray]:
+    """A small imbalanced multi-class classification dataset for ml/training and ml/evaluation."""
+    from sklearn.datasets import make_classification
+
+    X, y = make_classification(
+        n_samples=300,
+        n_features=6,
+        n_informative=4,
+        n_redundant=0,
+        n_classes=3,
+        weights=[0.7, 0.2, 0.1],
+        random_state=42,
+    )
+    X = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
+    return X, y

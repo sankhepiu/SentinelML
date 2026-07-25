@@ -63,5 +63,8 @@ processed data and fitted artifacts are regenerated locally, not committed.
     pipeline = PreprocessingPipeline.load("ml/models/artifacts/preprocessing")
     X, y = pipeline.transform(new_df)  # same columns dropped, same imputer/scaler/encoder
 
-This is the same interface Milestone 3+ training and inference code will
-use to apply preprocessing consistently.
+This is the same interface Milestone 3+ training and inference code use to
+apply preprocessing consistently. Milestone 3 (`ml/training/`, see
+`ml/training/README.md`) reads this pipeline's `metadata` only -- it never
+calls `.fit()` or `.transform()` again, since `sentinel preprocess` already
+wrote the fully transformed `train.csv` / `val.csv` / `test.csv`.

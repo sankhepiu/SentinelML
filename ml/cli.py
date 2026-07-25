@@ -1,8 +1,8 @@
 """`sentinel` -- SentinelML's command-line entry point.
 
 Installed as a console script (see `[project.scripts]` in pyproject.toml).
-Each pipeline stage (profiling, preprocessing, and training/inference in
-later milestones) gets its own subcommand.
+Each pipeline stage (profiling, preprocessing, training, and inference in
+a later milestone) gets its own subcommand.
 """
 
 from __future__ import annotations
@@ -17,6 +17,12 @@ from ml.preprocessing.run import (
     DEFAULT_PROCESSED_DIR,
 )
 from ml.preprocessing.split import DEFAULT_TEST_SIZE, DEFAULT_TRAIN_SIZE, DEFAULT_VAL_SIZE
+from ml.training.run import (
+    DEFAULT_MODELS_DIR,
+    DEFAULT_N_ESTIMATORS,
+    DEFAULT_RANDOM_STATE,
+    DEFAULT_SELECTION_METRIC,
+)
 
 
 def _run_profile(args: argparse.Namespace) -> None:
@@ -43,6 +49,23 @@ def _run_preprocess(args: argparse.Namespace) -> None:
         test_size=args.test_size,
         random_state=args.random_state,
         low_variance_threshold=args.low_variance_threshold,
+    )
+    print("Generated:")
+    for name, path in outputs.items():
+        print(f"  {name}: {path}")
+
+
+def _run_train(args: argparse.Namespace) -> None:
+    from ml.training.run import run_training
+
+    outputs = run_training(
+        processed_dir=args.processed_dir,
+        preprocessing_artifacts_dir=args.preprocessing_artifacts_dir,
+        models_dir=args.models_dir,
+        label_column=args.label_column,
+        selection_metric=args.selection_metric,
+        n_estimators=args.n_estimators,
+        random_state=args.random_state,
     )
     print("Generated:")
     for name, path in outputs.items():
@@ -111,6 +134,60 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Normalized-variance threshold below which a feature is dropped",
     )
     preprocess_parser.set_defaults(func=_run_preprocess)
+
+    train_parser = subparsers.add_parser(
+        "train",
+        help="Run the Milestone 3 training pipeline: train candidate models, "
+        "evaluate, and save the best one.",
+    )
+    train_parser.add_argument(
+        "--processed-dir",
+        type=Path,
+        default=DEFAULT_PROCESSED_DIR,
+        help="Directory containing train/val/test CSVs from `sentinel preprocess` "
+        "(default: ml/data/processed)",
+    )
+    train_parser.add_argument(
+        "--preprocessing-artifacts-dir",
+        type=Path,
+        default=DEFAULT_ARTIFACTS_DIR,
+        help="Directory containing fitted preprocessing artifacts -- read for metadata only, "
+        "never refit (default: ml/models/artifacts/preprocessing)",
+    )
+    train_parser.add_argument(
+        "--models-dir",
+        type=Path,
+        default=DEFAULT_MODELS_DIR,
+        help="Root directory for versioned trained-model artifacts "
+        "(default: ml/models/artifacts)",
+    )
+    train_parser.add_argument(
+        "--label-column", default="Label", help="Name of the class label column"
+    )
+    train_parser.add_argument(
+        "--selection-metric",
+        default=DEFAULT_SELECTION_METRIC,
+        choices=[
+            "accuracy",
+            "precision_macro",
+            "precision_weighted",
+            "recall_macro",
+            "recall_weighted",
+            "f1_macro",
+            "f1_weighted",
+        ],
+        help="Validation metric used to select the best model",
+    )
+    train_parser.add_argument(
+        "--n-estimators",
+        type=int,
+        default=DEFAULT_N_ESTIMATORS,
+        help="Number of trees for every candidate model",
+    )
+    train_parser.add_argument(
+        "--random-state", type=int, default=DEFAULT_RANDOM_STATE, help="Random seed for training"
+    )
+    train_parser.set_defaults(func=_run_train)
 
     return parser
 
