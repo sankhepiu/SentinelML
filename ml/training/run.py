@@ -18,6 +18,7 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.utils.class_weight import compute_sample_weight
 
@@ -48,12 +49,19 @@ class TrainingRunSummary:
     skipped_models: dict[str, str]
     val_metrics: dict[str, dict]
     test_metrics: dict
+    feature_importances: dict[str, dict[str, float]]
+    class_distribution: dict[str, dict[str, int]]
     n_train_rows: int
     n_val_rows: int
     n_test_rows: int
     feature_columns: list[str]
     label_mapping: dict[str, str]
     random_state: int
+
+
+def _class_distribution(y: np.ndarray, label_mapping: dict[str, str]) -> dict[str, int]:
+    counts = pd.Series(y).value_counts()
+    return {label_mapping[str(code)]: int(count) for code, count in counts.items()}
 
 
 def get_available_trainer_classes() -> tuple[dict[str, type[BaseModelTrainer]], dict[str, str]]:
@@ -145,7 +153,13 @@ def run_training(
 
     outputs: dict[str, Path] = {"model": best_trainer.save(version_dir)}
 
+    feature_importances: dict[str, dict[str, float]] = {}
     for model_type, result in val_results.items():
+        importances = fitted_trainers[model_type].feature_importances()
+        feature_importances[model_type] = {
+            col: float(value) for col, value in zip(feature_columns, importances, strict=True)
+        }
+
         outputs[f"figure_confusion_matrix_{model_type}"] = plot_confusion_matrix(
             result.confusion_matrix,
             target_names,
@@ -154,7 +168,7 @@ def run_training(
         )
         outputs[f"figure_feature_importance_{model_type}"] = plot_feature_importance(
             feature_columns,
-            fitted_trainers[model_type].feature_importances(),
+            importances,
             figures_dir / f"feature_importance_{model_type}.png",
             title=f"{model_type} -- feature importance",
         )
@@ -179,6 +193,12 @@ def run_training(
     metadata_path.write_text(json.dumps(model_metadata, indent=2))
     outputs["metadata"] = metadata_path
 
+    class_distribution = {
+        "train": _class_distribution(y_train, label_mapping),
+        "val": _class_distribution(y_val, label_mapping),
+        "test": _class_distribution(y_test, label_mapping),
+    }
+
     summary = TrainingRunSummary(
         version=version,
         best_model_type=best_model_type,
@@ -187,6 +207,8 @@ def run_training(
         skipped_models=skipped_models,
         val_metrics={m: r.to_dict() for m, r in val_results.items()},
         test_metrics=test_result.to_dict(),
+        feature_importances=feature_importances,
+        class_distribution=class_distribution,
         n_train_rows=len(train_df),
         n_val_rows=len(val_df),
         n_test_rows=len(test_df),

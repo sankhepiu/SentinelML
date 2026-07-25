@@ -57,6 +57,18 @@ def test_run_training_end_to_end(tmp_path, processed_dataset):
         assert "classification_report" in summary["val_metrics"][model_type]
     assert "confusion_matrix" in summary["test_metrics"]
 
+    for model_type in summary["trained_models"]:
+        assert model_type in summary["feature_importances"]
+        assert set(summary["feature_importances"][model_type]) == set(summary["feature_columns"])
+
+    assert set(summary["class_distribution"]) == {"train", "val", "test"}
+    for split, n_rows in [
+        ("train", summary["n_train_rows"]),
+        ("val", summary["n_val_rows"]),
+        ("test", summary["n_test_rows"]),
+    ]:
+        assert sum(summary["class_distribution"][split].values()) == n_rows
+
 
 def test_run_training_creates_figures_for_every_trained_model(tmp_path, processed_dataset):
     processed_dir, artifacts_dir = processed_dataset

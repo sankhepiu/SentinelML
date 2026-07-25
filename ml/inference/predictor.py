@@ -84,6 +84,21 @@ class Predictor:
         self._check_loaded()
         return self._pipeline.metadata.label_classes
 
+    @property
+    def training_summary(self) -> dict[str, Any] | None:
+        """The full training comparison report (`ml.training.run.TrainingRunSummary`), if present.
+
+        Written by `sentinel train` alongside `model.joblib`/`metadata.json`.
+        Returns `None` rather than raising if a model directory was
+        populated some other way and lacks it -- this is presentation data
+        for a dashboard, not required for prediction.
+        """
+        self._check_loaded()
+        path = self.model_dir / "training_summary.json"
+        if not path.exists():
+            return None
+        return json.loads(path.read_text())
+
     def predict(self, df: pd.DataFrame) -> list[PredictionResult]:
         """Preprocess `df` (raw feature columns, no label) and predict one result per row."""
         self._check_loaded()

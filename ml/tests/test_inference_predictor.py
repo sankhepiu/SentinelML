@@ -149,3 +149,35 @@ def test_load_raises_when_artifacts_missing(tmp_path):
 
     with pytest.raises(FileNotFoundError):
         Predictor(tmp_path / "v1", preprocessing_dir=tmp_path / "preprocessing").load()
+
+
+def test_training_summary_contains_expected_sections(trained_artifacts):
+    models_root, _ = trained_artifacts
+    predictor = Predictor.from_registry(models_root)
+
+    summary = predictor.training_summary
+
+    assert summary is not None
+    assert summary["best_model_type"] == predictor.metadata.model_type
+    assert set(summary["trained_models"]) >= {"random_forest", "xgboost"}
+    assert summary["best_model_type"] in summary["feature_importances"]
+    assert set(summary["feature_importances"][summary["best_model_type"]]) == set(
+        predictor.feature_names
+    )
+    assert set(summary["class_distribution"]) == {"train", "val", "test"}
+    assert set(summary["class_distribution"]["test"]) <= set(predictor.label_classes)
+
+
+def test_training_summary_is_none_when_file_missing(trained_artifacts):
+    models_root, _ = trained_artifacts
+    predictor = Predictor.from_registry(models_root)
+    (predictor.model_dir / "training_summary.json").unlink()
+
+    assert predictor.training_summary is None
+
+
+def test_training_summary_raises_before_load():
+    predictor = Predictor(model_dir="unused")
+
+    with pytest.raises(RuntimeError, match="must be load"):
+        _ = predictor.training_summary
