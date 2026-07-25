@@ -94,5 +94,8 @@ of support -- is the default selection metric for the same reason;
     model = joblib.load("ml/models/artifacts/v1/model.joblib")
     model.predict(X)  # X must already be preprocessed -- see ml/preprocessing/README.md
 
-Wrapping this behind `ml.inference.Predictor` (loading via `ModelRegistry`)
-is Milestone 4's job.
+This is what Milestone 4's `ml.inference.Predictor` does for you --
+resolving the version via `ModelRegistry`, loading both the model and the
+preprocessing pipeline it was trained against, and applying preprocessing
+to raw feature input automatically. See `ml/inference/README.md` and
+`backend/README.md` (the FastAPI service built on top of it).

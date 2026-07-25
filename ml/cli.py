@@ -72,6 +72,40 @@ def _run_train(args: argparse.Namespace) -> None:
         print(f"  {name}: {path}")
 
 
+def _run_serve(args: argparse.Namespace) -> None:
+    import subprocess
+    import sys
+
+    backend_dir = Path(__file__).resolve().parents[1] / "backend"
+    cmd = [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        args.host,
+        "--port",
+        str(args.port),
+        # Our own RequestLoggingMiddleware already logs every request in
+        # structured JSON; uvicorn's built-in access log would just add a
+        # second, differently-formatted line per request.
+        "--no-access-log",
+    ]
+    if args.reload:
+        cmd.append("--reload")
+
+    print(f"Starting SentinelML API on http://{args.host}:{args.port} (backend dir: {backend_dir})")
+    try:
+        subprocess.run(cmd, cwd=backend_dir, check=True)
+    except FileNotFoundError as exc:
+        print(
+            "error: `uvicorn` executable not found. Run `uv sync --all-packages` "
+            "to install backend dependencies.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1) from exc
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(exc.returncode) from exc
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="sentinel", description="SentinelML pipeline CLI.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -188,6 +222,18 @@ def _build_parser() -> argparse.ArgumentParser:
         "--random-state", type=int, default=DEFAULT_RANDOM_STATE, help="Random seed for training"
     )
     train_parser.set_defaults(func=_run_train)
+
+    serve_parser = subparsers.add_parser(
+        "serve", help="Launch the Milestone 4 FastAPI inference service locally."
+    )
+    serve_parser.add_argument(
+        "--host", default="127.0.0.1", help="Interface to bind (default: 127.0.0.1)"
+    )
+    serve_parser.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
+    serve_parser.add_argument(
+        "--reload", action="store_true", help="Auto-reload on code changes (development only)"
+    )
+    serve_parser.set_defaults(func=_run_serve)
 
     return parser
 

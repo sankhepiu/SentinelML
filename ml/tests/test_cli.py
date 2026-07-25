@@ -119,3 +119,48 @@ def test_train_subcommand_runs_end_to_end(tmp_path, cicids_like_df, capsys):
     assert (models_dir / "v1" / "model.joblib").exists()
     assert (models_dir / "v1" / "metadata.json").exists()
     assert "Generated:" in capsys.readouterr().out
+
+
+def test_serve_subcommand_defaults():
+    parser = _build_parser()
+    args = parser.parse_args(["serve"])
+
+    assert args.command == "serve"
+    assert args.host == "127.0.0.1"
+    assert args.port == 8000
+    assert args.reload is False
+
+
+def test_serve_subcommand_accepts_overrides():
+    parser = _build_parser()
+    args = parser.parse_args(["serve", "--host", "0.0.0.0", "--port", "9000", "--reload"])
+
+    assert args.host == "0.0.0.0"
+    assert args.port == 9000
+    assert args.reload is True
+
+
+def test_serve_subcommand_invokes_uvicorn_with_expected_command(monkeypatch):
+    captured = {}
+
+    def fake_run(cmd, cwd, check):
+        captured["cmd"] = cmd
+        captured["cwd"] = cwd
+
+        class _Result:
+            returncode = 0
+
+        return _Result()
+
+    monkeypatch.setattr("subprocess.run", fake_run)
+
+    parser = _build_parser()
+    args = parser.parse_args(["serve", "--host", "0.0.0.0", "--port", "9000"])
+    args.func(args)
+
+    assert captured["cmd"][:2] == ["uvicorn", "app.main:app"]
+    assert "--host" in captured["cmd"] and "0.0.0.0" in captured["cmd"]
+    assert "--port" in captured["cmd"] and "9000" in captured["cmd"]
+    assert "--no-access-log" in captured["cmd"]
+    assert "--reload" not in captured["cmd"]
+    assert captured["cwd"].name == "backend"
