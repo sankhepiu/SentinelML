@@ -68,3 +68,7 @@ This loads the dataset, computes the data profile, generates the
 visualizations, and writes everything under `docs/reports/` (see
 `docs/reports/README.md`). Nothing here mutates, cleans, or trains on the
 data — it is strictly read-only exploratory analysis.
+
+Once you've reviewed the profile, Milestone 2 (`ml/preprocessing/`, see
+`ml/preprocessing/README.md`) turns this same CSV into model-ready
+train/val/test splits.

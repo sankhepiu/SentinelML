@@ -1,18 +1,19 @@
-"""Shared fixtures for ml/data pipeline tests.
+"""Shared fixtures for ml/data and ml/preprocessing pipeline tests.
 
 `cicids_like_df` is a small synthetic dataset shaped like CICIDS2017 --
 same style of column names (including inconsistent leading whitespace) and
-deliberately seeded with every issue the profiling pipeline needs to catch:
-missing values, ±Inf, duplicate rows, a constant column, a low-variance
-column, a highly correlated pair, and class imbalance. It is not real
-CICIDS2017 data.
+deliberately seeded with every issue the pipelines need to catch: missing
+values, ±Inf, duplicate rows, a constant column, a low-variance column, a
+highly correlated pair, and class imbalance. Class sizes are kept large
+enough (>=40 in the smallest class) that a stratified 70/15/15 train/val/test
+split always succeeds. It is not real CICIDS2017 data.
 """
 
 import numpy as np
 import pandas as pd
 import pytest
 
-N_ROWS = 300
+N_ROWS = 400
 
 
 @pytest.fixture
@@ -43,7 +44,7 @@ def cicids_like_df() -> pd.DataFrame:
             " Fwd Packet Length Max": rng.uniform(0, 1500, size=N_ROWS),
             " Fwd URG Flags": np.zeros(N_ROWS),
             " Bwd PSH Flags": low_variance_col,
-            " Label": rng.choice(["BENIGN"] * 90 + ["DDoS"] * 8 + ["PortScan"] * 2, size=N_ROWS),
+            " Label": rng.choice(["BENIGN"] * 75 + ["DDoS"] * 15 + ["PortScan"] * 10, size=N_ROWS),
         }
     )
 

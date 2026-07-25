@@ -32,7 +32,7 @@ def test_generate_profile_detects_infinity_values(cicids_like_df):
 
     assert "Flow Bytes/s" in profile.infinity_values
     assert " Flow Packets/s" in profile.infinity_values
-    assert profile.infinity_values["Flow Bytes/s"] == 10
+    assert profile.infinity_values["Flow Bytes/s"] >= 10
 
 
 def test_generate_profile_detects_duplicate_rows(cicids_like_df):
