@@ -1,0 +1,28 @@
+# Used when building backend/Dockerfile with the repo root as context.
+.git
+.github
+
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+.cohort
+.claude
+
+# Frontend isn't part of the backend image.
+frontend/node_modules
+frontend/dist
+
+# Large/binary and environment-specific -- not baked into the image, see
+# backend/Dockerfile and docker-compose.yml.
+ml/data/raw
+ml/data/processed
+ml/models/artifacts
+docs/reports/figures
+
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

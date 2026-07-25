@@ -8,6 +8,7 @@ a later milestone) gets its own subcommand.
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from ml.data.feature_stats import DEFAULT_LOW_VARIANCE_THRESHOLD
@@ -73,6 +74,7 @@ def _run_train(args: argparse.Namespace) -> None:
 
 
 def _run_serve(args: argparse.Namespace) -> None:
+    import signal
     import subprocess
     import sys
 
@@ -94,16 +96,29 @@ def _run_serve(args: argparse.Namespace) -> None:
 
     print(f"Starting SentinelML API on http://{args.host}:{args.port} (backend dir: {backend_dir})")
     try:
-        subprocess.run(cmd, cwd=backend_dir, check=True)
-    except FileNotFoundError as exc:
+        process = subprocess.Popen(cmd, cwd=backend_dir)
+    except FileNotFoundError:
         print(
             "error: `uvicorn` executable not found. Run `uv sync --all-packages` "
             "to install backend dependencies.",
             file=sys.stderr,
         )
-        raise SystemExit(1) from exc
-    except subprocess.CalledProcessError as exc:
-        raise SystemExit(exc.returncode) from exc
+        raise SystemExit(1) from None
+
+    # A plain subprocess.run() here would leave uvicorn running as an
+    # orphan if something sends SIGTERM to just this process (a supervisor,
+    # `docker stop` targeting this PID, systemd, ...) rather than the whole
+    # process group -- forward whatever we receive to the child instead of
+    # exiting out from under it.
+    def _forward_signal(signum: int, _frame: object) -> None:
+        process.send_signal(signum)
+
+    signal.signal(signal.SIGTERM, _forward_signal)
+    signal.signal(signal.SIGINT, _forward_signal)
+
+    returncode = process.wait()
+    if returncode != 0:
+        raise SystemExit(returncode)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -229,7 +244,13 @@ def _build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument(
         "--host", default="127.0.0.1", help="Interface to bind (default: 127.0.0.1)"
     )
-    serve_parser.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("PORT", 8000)),
+        help="Port to bind (default: $PORT env var if set, else 8000 -- "
+        "many PaaS platforms inject $PORT)",
+    )
     serve_parser.add_argument(
         "--reload", action="store_true", help="Auto-reload on code changes (development only)"
     )

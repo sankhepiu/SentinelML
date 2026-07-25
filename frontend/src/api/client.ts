@@ -1,4 +1,7 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
+// `||`, not `??`: an empty string (e.g. an unset Docker build ARG, which
+// resolves to "" rather than undefined) must also fall back to the
+// default, not be used as a literally empty base URL.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 /**
  * Thrown for any non-2xx response. `detail` carries FastAPI's `detail` field

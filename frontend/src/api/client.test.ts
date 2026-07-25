@@ -1,6 +1,40 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiGetTolerant, apiPost, ApiError, formatApiErrorDetail } from './client'
 
+describe('API_BASE_URL', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it('falls back to /api/v1 when VITE_API_BASE_URL is unset', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', undefined as unknown as string)
+    vi.resetModules()
+
+    const { API_BASE_URL } = await import('./client')
+
+    expect(API_BASE_URL).toBe('/api/v1')
+  })
+
+  it('falls back to /api/v1 when VITE_API_BASE_URL is an empty string (e.g. an unset Docker build ARG)', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', '')
+    vi.resetModules()
+
+    const { API_BASE_URL } = await import('./client')
+
+    expect(API_BASE_URL).toBe('/api/v1')
+  })
+
+  it('uses an explicitly set VITE_API_BASE_URL', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', 'https://api.example.com/api/v1')
+    vi.resetModules()
+
+    const { API_BASE_URL } = await import('./client')
+
+    expect(API_BASE_URL).toBe('https://api.example.com/api/v1')
+  })
+})
+
 function mockFetchOnce(status: number, body: unknown) {
   vi.stubGlobal(
     'fetch',
