@@ -2,6 +2,8 @@
 
 FastAPI service that serves predictions from the best model trained in
 Milestone 3, via `ml.inference.Predictor` (see `ml/inference/README.md`).
+The React dashboard (Milestone 5, `frontend/`) is the primary consumer of
+this API beyond direct HTTP calls.
 
 ## Running it
 
@@ -29,6 +31,7 @@ Once running:
 | GET | `/api/v1/health` | Process is alive. Always 200 once the server has started. |
 | GET | `/api/v1/ready` | Model + preprocessing pipeline are loaded and usable. 200 or 503. |
 | GET | `/api/v1/model` | Metadata about the loaded model: type, version, feature names, label classes, test-set metrics. |
+| GET | `/api/v1/model/training-summary` | Full training comparison report: every candidate's validation metrics (incl. confusion matrix, classification report), the selected model's test metrics, per-model feature importances, and class distribution. 404 if the model directory predates this field. |
 | POST | `/api/v1/predict` | Predict one flow's class. |
 | POST | `/api/v1/predict/batch` | Predict a batch of flows in one call. |
 
