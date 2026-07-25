@@ -9,13 +9,18 @@
 ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.11.32
 
+# BuildKit doesn't support ARG expansion directly in `COPY --from=<image>`;
+# give the uv image its own named stage (FROM ... AS uv) so `--from=uv` is a
+# literal stage reference instead.
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
 FROM python:${PYTHON_VERSION}-slim AS base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 # ---- builder --------------------------------------------------------------
 FROM base AS builder
-COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
+COPY --from=uv /uv /uvx /bin/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
