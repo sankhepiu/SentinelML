@@ -97,20 +97,33 @@ class PreprocessingPipeline:
         self._fitted = True
         return self
 
-    def transform(self, df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
-        """Apply the fitted column selection, imputation, scaling, and label encoding to `df`."""
+    def transform_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply the fitted column selection, imputation, and scaling -- no label required.
+
+        This is what inference uses: a raw request has features but no
+        `label_column` to encode.
+        """
         self._check_fitted()
         X = df[self._feature_columns].replace([np.inf, -np.inf], np.nan)
         X_imputed = pd.DataFrame(
             self._imputer.transform(X), columns=self._feature_columns, index=X.index
         )
         X_scaled = self._scaler.transform(X_imputed)
-        X_out = pd.DataFrame(X_scaled, columns=self._feature_columns, index=df.index)
+        return pd.DataFrame(X_scaled, columns=self._feature_columns, index=df.index)
+
+    def transform(self, df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
+        """Apply the fitted column selection, imputation, scaling, and label encoding to `df`."""
+        X_out = self.transform_features(df)
         y = self._label_encoder.transform(df[self.label_column])
         return X_out, y
 
     def fit_transform(self, train_df: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
         return self.fit(train_df).transform(train_df)
+
+    def decode_labels(self, y: np.ndarray) -> np.ndarray:
+        """Map encoded label codes back to their original class names."""
+        self._check_fitted()
+        return self._label_encoder.inverse_transform(y)
 
     @property
     def metadata(self) -> PreprocessingMetadata:

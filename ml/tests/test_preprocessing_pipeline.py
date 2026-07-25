@@ -138,3 +138,46 @@ def test_fit_raises_when_every_feature_column_is_dropped():
 
     with pytest.raises(ValueError, match="No feature columns remain"):
         PreprocessingPipeline(label_column="Label").fit(df)
+
+
+def test_transform_features_does_not_require_label_column(fitted_pipeline_and_split):
+    pipeline, split = fitted_pipeline_and_split
+    features_only = split.test.drop(columns=[" Label"])
+
+    X = pipeline.transform_features(features_only)
+
+    assert list(X.columns) == pipeline.metadata.feature_columns
+    assert len(X) == len(features_only)
+    assert not X.isna().any().any()
+
+
+def test_transform_features_matches_transform(fitted_pipeline_and_split):
+    pipeline, split = fitted_pipeline_and_split
+
+    X_via_transform, _ = pipeline.transform(split.test)
+    X_via_transform_features = pipeline.transform_features(split.test)
+
+    pd.testing.assert_frame_equal(X_via_transform, X_via_transform_features)
+
+
+def test_transform_features_before_fit_raises():
+    pipeline = PreprocessingPipeline()
+
+    with pytest.raises(RuntimeError, match="must be fit"):
+        pipeline.transform_features(pd.DataFrame({"a": [1]}))
+
+
+def test_decode_labels_round_trips_through_transform(fitted_pipeline_and_split):
+    pipeline, split = fitted_pipeline_and_split
+
+    _, y = pipeline.transform(split.test)
+    decoded = pipeline.decode_labels(y)
+
+    assert list(decoded) == list(split.test[" Label"])
+
+
+def test_decode_labels_before_fit_raises():
+    pipeline = PreprocessingPipeline()
+
+    with pytest.raises(RuntimeError, match="must be fit"):
+        pipeline.decode_labels(np.array([0, 1]))
