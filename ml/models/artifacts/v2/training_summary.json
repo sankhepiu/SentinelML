@@ -1,0 +1,625 @@
+{
+  "version": "v2",
+  "best_model_type": "lightgbm",
+  "selection_metric": "f1_macro",
+  "trained_models": [
+    "random_forest",
+    "xgboost",
+    "lightgbm"
+  ],
+  "skipped_models": {},
+  "val_metrics": {
+    "random_forest": {
+      "accuracy": 0.9994106026042633,
+      "precision_macro": 0.9971435661891263,
+      "precision_weighted": 0.9994114263719678,
+      "recall_macro": 0.997757599635518,
+      "recall_weighted": 0.9994106026042633,
+      "f1_macro": 0.9974493454371723,
+      "f1_weighted": 0.9994107955852499,
+      "roc_auc_ovr_macro": 0.9996505764217716,
+      "confusion_matrix": [
+        [
+          62520,
+          0,
+          32,
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          1541,
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          25919,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          780,
+          3,
+          0
+        ],
+        [
+          2,
+          1,
+          0,
+          2,
+          803,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2
+        ]
+      ],
+      "classification_report": {
+        "BENIGN": {
+          "precision": 0.9999520176575021,
+          "recall": 0.9994404923667173,
+          "f1-score": 0.9996961895777036,
+          "support": 62555.0
+        },
+        "DoS GoldenEye": {
+          "precision": 0.9941935483870967,
+          "recall": 0.998703823720026,
+          "f1-score": 0.9964435822825736,
+          "support": 1543.0
+        },
+        "DoS Hulk": {
+          "precision": 0.9986899395060301,
+          "recall": 0.9996914413545724,
+          "f1-score": 0.9991904394757132,
+          "support": 25927.0
+        },
+        "DoS Slowhttptest": {
+          "precision": 0.9974424552429667,
+          "recall": 0.9948979591836735,
+          "f1-score": 0.9961685823754789,
+          "support": 784.0
+        },
+        "DoS slowloris": {
+          "precision": 0.992583436341162,
+          "recall": 0.9938118811881188,
+          "f1-score": 0.9931972789115646,
+          "support": 808.0
+        },
+        "Heartbleed": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 2.0
+        },
+        "accuracy": 0.9994106026042633,
+        "macro avg": {
+          "precision": 0.9971435661891263,
+          "recall": 0.997757599635518,
+          "f1-score": 0.9974493454371723,
+          "support": 91619.0
+        },
+        "weighted avg": {
+          "precision": 0.9994114263719678,
+          "recall": 0.9994106026042633,
+          "f1-score": 0.9994107955852499,
+          "support": 91619.0
+        }
+      }
+    },
+    "xgboost": {
+      "accuracy": 0.9994542616706141,
+      "precision_macro": 0.9951687722919579,
+      "precision_weighted": 0.9994589088788733,
+      "recall_macro": 0.9987495519477925,
+      "recall_weighted": 0.9994542616706141,
+      "f1_macro": 0.9969476368024403,
+      "f1_weighted": 0.9994554346590934,
+      "roc_auc_ovr_macro": 0.9999375073475795,
+      "confusion_matrix": [
+        [
+          62533,
+          1,
+          14,
+          3,
+          4,
+          0
+        ],
+        [
+          0,
+          1543,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          23,
+          25904,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          782,
+          2,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          1,
+          805,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2
+        ]
+      ],
+      "classification_report": {
+        "BENIGN": {
+          "precision": 0.9999840086992676,
+          "recall": 0.9996483094876508,
+          "f1-score": 0.9998161309147887,
+          "support": 62555.0
+        },
+        "DoS GoldenEye": {
+          "precision": 0.9840561224489796,
+          "recall": 1.0,
+          "f1-score": 0.9919639987142398,
+          "support": 1543.0
+        },
+        "DoS Hulk": {
+          "precision": 0.9994598348638012,
+          "recall": 0.9991128938943958,
+          "f1-score": 0.9992863342655994,
+          "support": 25927.0
+        },
+        "DoS Slowhttptest": {
+          "precision": 0.9949109414758269,
+          "recall": 0.9974489795918368,
+          "f1-score": 0.9961783439490446,
+          "support": 784.0
+        },
+        "DoS slowloris": {
+          "precision": 0.9926017262638718,
+          "recall": 0.9962871287128713,
+          "f1-score": 0.9944410129709698,
+          "support": 808.0
+        },
+        "Heartbleed": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 2.0
+        },
+        "accuracy": 0.9994542616706141,
+        "macro avg": {
+          "precision": 0.9951687722919579,
+          "recall": 0.9987495519477925,
+          "f1-score": 0.9969476368024403,
+          "support": 91619.0
+        },
+        "weighted avg": {
+          "precision": 0.9994589088788733,
+          "recall": 0.9994542616706141,
+          "f1-score": 0.9994554346590934,
+          "support": 91619.0
+        }
+      }
+    },
+    "lightgbm": {
+      "accuracy": 0.9996070684028422,
+      "precision_macro": 0.9977579172467061,
+      "precision_weighted": 0.9996083326507942,
+      "recall_macro": 0.9987179283600929,
+      "recall_weighted": 0.9996070684028422,
+      "f1_macro": 0.9982343601675879,
+      "f1_weighted": 0.999607365324344,
+      "roc_auc_ovr_macro": 0.9998970323420621,
+      "confusion_matrix": [
+        [
+          62540,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1542,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          13,
+          25912,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          783,
+          1,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          2,
+          804,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2
+        ]
+      ],
+      "classification_report": {
+        "BENIGN": {
+          "precision": 0.9999520330012951,
+          "recall": 0.9997602110143075,
+          "f1-score": 0.9998561128075589,
+          "support": 62555.0
+        },
+        "DoS GoldenEye": {
+          "precision": 0.9910025706940874,
+          "recall": 0.9993519118600129,
+          "f1-score": 0.995159728944821,
+          "support": 1543.0
+        },
+        "DoS Hulk": {
+          "precision": 0.9993829065103363,
+          "recall": 0.9994214525398234,
+          "f1-score": 0.9994021791534086,
+          "support": 25927.0
+        },
+        "DoS Slowhttptest": {
+          "precision": 0.9974522292993631,
+          "recall": 0.9987244897959183,
+          "f1-score": 0.9980879541108987,
+          "support": 784.0
+        },
+        "DoS slowloris": {
+          "precision": 0.9987577639751553,
+          "recall": 0.995049504950495,
+          "f1-score": 0.9969001859888407,
+          "support": 808.0
+        },
+        "Heartbleed": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 2.0
+        },
+        "accuracy": 0.9996070684028422,
+        "macro avg": {
+          "precision": 0.9977579172467061,
+          "recall": 0.9987179283600929,
+          "f1-score": 0.9982343601675879,
+          "support": 91619.0
+        },
+        "weighted avg": {
+          "precision": 0.9996083326507942,
+          "recall": 0.9996070684028422,
+          "f1-score": 0.999607365324344,
+          "support": 91619.0
+        }
+      }
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.9996725605762934,
+    "precision_macro": 0.9970700157478293,
+    "precision_weighted": 0.9996734474018157,
+    "recall_macro": 0.9981431294055548,
+    "recall_weighted": 0.9996725605762934,
+    "f1_macro": 0.9976027649009613,
+    "f1_weighted": 0.9996727460621675,
+    "roc_auc_ovr_macro": 0.9999976093974552,
+    "confusion_matrix": [
+      [
+        62543,
+        2,
+        10,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1542,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        7,
+        25919,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        782,
+        2,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        5,
+        802,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    ],
+    "classification_report": {
+      "BENIGN": {
+        "precision": 0.9999680230234231,
+        "recall": 0.9997921862011637,
+        "f1-score": 0.9998800968817195,
+        "support": 62556.0
+      },
+      "DoS GoldenEye": {
+        "precision": 0.9941972920696325,
+        "recall": 0.9993519118600129,
+        "f1-score": 0.9967679379444085,
+        "support": 1543.0
+      },
+      "DoS Hulk": {
+        "precision": 0.9996143314435574,
+        "recall": 0.9996914413545724,
+        "f1-score": 0.9996528849120642,
+        "support": 25927.0
+      },
+      "DoS Slowhttptest": {
+        "precision": 0.991128010139417,
+        "recall": 0.9974489795918368,
+        "f1-score": 0.9942784488239034,
+        "support": 784.0
+      },
+      "DoS slowloris": {
+        "precision": 0.9975124378109452,
+        "recall": 0.9925742574257426,
+        "f1-score": 0.9950372208436724,
+        "support": 808.0
+      },
+      "Heartbleed": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 2.0
+      },
+      "accuracy": 0.9996725605762934,
+      "macro avg": {
+        "precision": 0.9970700157478293,
+        "recall": 0.9981431294055548,
+        "f1-score": 0.9976027649009613,
+        "support": 91620.0
+      },
+      "weighted avg": {
+        "precision": 0.9996734474018157,
+        "recall": 0.9996725605762934,
+        "f1-score": 0.9996727460621675,
+        "support": 91620.0
+      }
+    }
+  },
+  "feature_importances": {
+    "random_forest": {
+      "Destination Port": 0.029251927549834387,
+      "Flow Duration": 0.04165236244433194,
+      "Bwd Packet Length Max": 0.07438723787342423,
+      "Bwd Packet Length Mean": 0.0677700971422578,
+      "Bwd Packet Length Std": 0.04122298506695602,
+      "Flow IAT Std": 0.04842947849561905,
+      "Flow IAT Max": 0.04074374563458104,
+      "Fwd IAT Total": 0.03802187007412355,
+      "Fwd IAT Std": 0.05204369180231953,
+      "Fwd IAT Max": 0.037218135693350904,
+      "Bwd IAT Total": 0.021987139322769186,
+      "Bwd IAT Std": 0.010169096303650663,
+      "Bwd IAT Max": 0.013938429193846458,
+      "Fwd PSH Flags": 0.0038784337128899746,
+      "Max Packet Length": 0.07855155643141822,
+      "Packet Length Mean": 0.057272501043013374,
+      "Packet Length Std": 0.0457757270427396,
+      "FIN Flag Count": 0.0018780436232600612,
+      "SYN Flag Count": 0.005379563515682056,
+      "PSH Flag Count": 0.0175749571616154,
+      "ACK Flag Count": 0.007750073817824014,
+      "URG Flag Count": 0.004290869027516887,
+      "Average Packet Size": 0.047260792927356736,
+      "Avg Bwd Segment Size": 0.06446392253970855,
+      "Init_Win_bytes_forward": 0.039458326228964,
+      "Init_Win_bytes_backward": 0.012795000114341676,
+      "min_seg_size_forward": 0.01690328523596373,
+      "Idle Mean": 0.023861371435930215,
+      "Idle Max": 0.014316852671523795,
+      "Idle Min": 0.0417525268731868
+    },
+    "xgboost": {
+      "Destination Port": 0.011951226741075516,
+      "Flow Duration": 0.020157484337687492,
+      "Bwd Packet Length Max": 0.4033919870853424,
+      "Bwd Packet Length Mean": 0.1287381947040558,
+      "Bwd Packet Length Std": 0.009706160984933376,
+      "Flow IAT Std": 0.015746397897601128,
+      "Flow IAT Max": 0.015497265383601189,
+      "Fwd IAT Total": 0.019393349066376686,
+      "Fwd IAT Std": 0.11662647128105164,
+      "Fwd IAT Max": 0.00837741419672966,
+      "Bwd IAT Total": 0.004687055945396423,
+      "Bwd IAT Std": 0.023516777902841568,
+      "Bwd IAT Max": 0.015428884886205196,
+      "Fwd PSH Flags": 0.014925621449947357,
+      "Max Packet Length": 0.019317926838994026,
+      "Packet Length Mean": 0.010794233530759811,
+      "Packet Length Std": 0.014975459314882755,
+      "FIN Flag Count": 0.010118143633008003,
+      "SYN Flag Count": 0.0,
+      "PSH Flag Count": 0.004709378816187382,
+      "ACK Flag Count": 0.0019732017535716295,
+      "URG Flag Count": 0.014816335402429104,
+      "Average Packet Size": 0.010676730424165726,
+      "Avg Bwd Segment Size": 0.0,
+      "Init_Win_bytes_forward": 0.010974237695336342,
+      "Init_Win_bytes_backward": 0.013738255016505718,
+      "min_seg_size_forward": 0.010928621515631676,
+      "Idle Mean": 0.05873345583677292,
+      "Idle Max": 0.0006119181634858251,
+      "Idle Min": 0.009487788192927837
+    },
+    "lightgbm": {
+      "Destination Port": 951.0,
+      "Flow Duration": 3245.0,
+      "Bwd Packet Length Max": 520.0,
+      "Bwd Packet Length Mean": 522.0,
+      "Bwd Packet Length Std": 630.0,
+      "Flow IAT Std": 1523.0,
+      "Flow IAT Max": 2977.0,
+      "Fwd IAT Total": 3851.0,
+      "Fwd IAT Std": 2017.0,
+      "Fwd IAT Max": 3225.0,
+      "Bwd IAT Total": 464.0,
+      "Bwd IAT Std": 366.0,
+      "Bwd IAT Max": 346.0,
+      "Fwd PSH Flags": 51.0,
+      "Max Packet Length": 1453.0,
+      "Packet Length Mean": 515.0,
+      "Packet Length Std": 831.0,
+      "FIN Flag Count": 185.0,
+      "SYN Flag Count": 0.0,
+      "PSH Flag Count": 97.0,
+      "ACK Flag Count": 96.0,
+      "URG Flag Count": 426.0,
+      "Average Packet Size": 686.0,
+      "Avg Bwd Segment Size": 0.0,
+      "Init_Win_bytes_forward": 3885.0,
+      "Init_Win_bytes_backward": 1865.0,
+      "min_seg_size_forward": 757.0,
+      "Idle Mean": 318.0,
+      "Idle Max": 113.0,
+      "Idle Min": 1512.0
+    }
+  },
+  "class_distribution": {
+    "train": {
+      "BENIGN": 291924,
+      "DoS Hulk": 120995,
+      "DoS GoldenEye": 7200,
+      "DoS slowloris": 3769,
+      "DoS Slowhttptest": 3660,
+      "Heartbleed": 7
+    },
+    "val": {
+      "BENIGN": 62555,
+      "DoS Hulk": 25927,
+      "DoS GoldenEye": 1543,
+      "DoS slowloris": 808,
+      "DoS Slowhttptest": 784,
+      "Heartbleed": 2
+    },
+    "test": {
+      "BENIGN": 62556,
+      "DoS Hulk": 25927,
+      "DoS GoldenEye": 1543,
+      "DoS slowloris": 808,
+      "DoS Slowhttptest": 784,
+      "Heartbleed": 2
+    }
+  },
+  "n_train_rows": 427555,
+  "n_val_rows": 91619,
+  "n_test_rows": 91620,
+  "feature_columns": [
+    "Destination Port",
+    "Flow Duration",
+    "Bwd Packet Length Max",
+    "Bwd Packet Length Mean",
+    "Bwd Packet Length Std",
+    "Flow IAT Std",
+    "Flow IAT Max",
+    "Fwd IAT Total",
+    "Fwd IAT Std",
+    "Fwd IAT Max",
+    "Bwd IAT Total",
+    "Bwd IAT Std",
+    "Bwd IAT Max",
+    "Fwd PSH Flags",
+    "Max Packet Length",
+    "Packet Length Mean",
+    "Packet Length Std",
+    "FIN Flag Count",
+    "SYN Flag Count",
+    "PSH Flag Count",
+    "ACK Flag Count",
+    "URG Flag Count",
+    "Average Packet Size",
+    "Avg Bwd Segment Size",
+    "Init_Win_bytes_forward",
+    "Init_Win_bytes_backward",
+    "min_seg_size_forward",
+    "Idle Mean",
+    "Idle Max",
+    "Idle Min"
+  ],
+  "label_mapping": {
+    "0": "BENIGN",
+    "1": "DoS GoldenEye",
+    "2": "DoS Hulk",
+    "3": "DoS Slowhttptest",
+    "4": "DoS slowloris",
+    "5": "Heartbleed"
+  },
+  "random_state": 42
+}

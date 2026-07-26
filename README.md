@@ -30,7 +30,7 @@ SentinelML classifies network flows into `BENIGN` traffic or one of five
 attack types (`DoS Hulk`, `DoS GoldenEye`, `DoS Slowhttptest`,
 `DoS slowloris`, `Heartbleed`) using flow-level statistics — packet counts,
 inter-arrival times, flag counts, window sizes — rather than raw packet
-contents. It's built as six milestones, each a complete, independently
+contents. It's built as seven milestones, each a complete, independently
 runnable stage:
 
 | # | Milestone | What it does |
@@ -40,7 +40,8 @@ runnable stage:
 | 3 | **Training** | Trains Random Forest, XGBoost, and LightGBM with class-balanced sample weights; evaluates all three; selects and persists the best. `ml/training/`, `ml/evaluation/` |
 | 4 | **Inference API** | FastAPI service loading the trained model + preprocessing pipeline; health/readiness/metadata/prediction endpoints. `backend/` |
 | 5 | **Dashboard** | React app for exploring model performance and making single/batch predictions against the live API. `frontend/` |
-| 6 | **Productionization** | Docker images, Compose stack, CI, and this README. *(you are here)* |
+| 6 | **Productionization** | Docker images, Compose stack, CI, and this README. |
+| 7 | **Production deployment** | Public deployment to Render (backend) + Vercel (frontend). [`render.yaml`](render.yaml), [`frontend/vercel.json`](frontend/vercel.json), [`scripts/verify_deploy.sh`](scripts/verify_deploy.sh). *(you are here)* |
 
 Every stage has its own README with the full detail: [`ml/data/README.md`](ml/data/README.md),
 [`ml/preprocessing/README.md`](ml/preprocessing/README.md),
@@ -98,11 +99,13 @@ project uses the `Wednesday-workingHours` capture (DoS/Heartbleed attacks):
   division-by-zero on zero-duration flows), 10 constant columns, 37
   low-variance columns, 87 highly-correlated feature pairs
 
-The dataset is **not** included in this repository (see
+The dataset itself is **not** included in this repository (see
 [`ml/data/README.md`](ml/data/README.md) for the official download link) —
-`ml/data/raw/` and every generated artifact under `ml/data/processed/` and
-`ml/models/artifacts/` are gitignored and regenerated locally by the
-pipeline.
+`ml/data/raw/` and `ml/data/processed/` are gitignored and regenerated
+locally by the pipeline. `ml/models/artifacts/` (the already-trained model
++ preprocessing pipeline) **is** committed, so the API/dashboard/Docker
+Compose stack all work out of the box without rerunning the pipeline — see
+[Deployment](#deployment).
 
 ## Tech stack
 
@@ -126,12 +129,12 @@ cd SentinelML
 docker compose up --build
 ```
 
-Open **http://localhost:8080**. This alone won't have a trained model yet
-(no artifacts exist in a fresh clone) — `/api/v1/ready` will report `503`
-and the dashboard's status badge will read "not ready" until you've run the
-ML pipeline at least once (native setup below) so `ml/models/artifacts/` is
-populated; Compose mounts that directory read-only into the backend
-container, so no rebuild is needed once it exists.
+Open **http://localhost:8080**. `ml/models/artifacts/` is committed to this
+repo (see [Deployment](#deployment)), so `/api/v1/ready` reports `200` and
+the dashboard is fully usable right out of a fresh clone — no need to run
+the ML pipeline first. Retrain locally (native setup below) to replace it
+with your own version; Compose mounts `ml/models/artifacts/` read-only from
+the host, so a rebuild isn't needed after retraining, just a restart.
 
 ### Full local development setup
 
@@ -281,44 +284,107 @@ after preprocessing, same seed (`--random-state 42`, the default).)*
 
 ## Deployment
 
-Three ways to run this in production, roughly in order of effort:
+`ml/models/artifacts/` (the trained model + preprocessing pipeline) is
+committed to this repo specifically so every option below is
+self-contained — no volume mount or object-storage fetch step needed to
+have a working deployment. Retrain and commit a new version
+(`ml/models/artifacts/vN/`) to update the served model.
 
-### 1. Docker Compose on a single host
+### Production: Render (backend) + Vercel (frontend)
+
+This is the reference deployment (Milestone 7) and the simplest path to a
+publicly reachable URL — no server to manage, both platforms build
+straight from this GitHub repo on every push to `main`.
+
+**1. Backend → Render**
+
+- [New Blueprint Instance](https://dashboard.render.com/select-repo?type=blueprint)
+  → pick this repo. Render reads [`render.yaml`](render.yaml) and creates
+  a `sentinelml-backend` web service: Docker runtime, build context repo
+  root, `backend/Dockerfile`, health check at `/api/v1/health`.
+- Render injects `$PORT` automatically; the backend Dockerfile's `CMD`
+  reads it (`uvicorn ... --port ${PORT:-8000}`) — nothing to configure.
+- `render.yaml` also sets `SENTINELML_CORS_ALLOW_ORIGIN_REGEX` to
+  `^https://sentinelml.*\.vercel\.app$`, which matches both the
+  production Vercel domain and every per-branch preview deployment for a
+  Vercel project named `sentinelml`. **If you name the Vercel project
+  something else, edit that regex before deploying** (or add the exact
+  production URL to `SENTINELML_CORS_ALLOW_ORIGINS` in the Render
+  dashboard once you have it — see [`backend/.env.example`](backend/.env.example)).
+- First deploy takes a few minutes (installs `build-essential` +
+  compiles the uv-managed Python env). Once live, confirm at
+  `https://<your-service>.onrender.com/api/v1/health` and `/api/v1/ready`
+  (should be `200` — the model is baked into the image, so it's ready
+  immediately, no separate training step needed in production).
+
+  Note: on Render's free plan the service spins down after 15 minutes
+  idle and the next request takes ~30–60s to cold-start — expected, not
+  a bug, on a demo deployment.
+
+**2. Frontend → Vercel**
+
+- [New Project](https://vercel.com/new) → import this repo → set **Root
+  Directory** to `frontend`. Vercel auto-detects Vite (build command
+  `npm run build`, output `dist`); [`frontend/vercel.json`](frontend/vercel.json)
+  adds the SPA fallback rewrite React Router needs (without it, refreshing
+  a deep link like `/predict` 404s).
+- Add an environment variable (Project Settings → Environment Variables,
+  scope **Production**, and **Preview** if you want preview deploys to
+  work too): `VITE_API_BASE_URL` = `https://<your-backend>.onrender.com/api/v1`.
+  This is a Vite *build-time* variable — set it before the first deploy,
+  or redeploy after changing it, since it's baked into the built JS, not
+  read at runtime (see [`frontend/.env.example`](frontend/.env.example)).
+- Deploy. The dashboard's status badge (Overview page) hitting `/ready`
+  through this variable is the fastest way to confirm the two services
+  found each other.
+
+**3. Closing the loop**
+
+The two steps above have a one-time circular dependency (the backend's
+CORS origin needs the frontend's URL; the frontend's API base URL needs
+the backend's URL) — deploy the backend first, then the frontend, then if
+your Vercel project name doesn't match the `render.yaml` regex, add the
+frontend's exact URL to `SENTINELML_CORS_ALLOW_ORIGINS` in the Render
+dashboard (Environment tab) and let it redeploy.
+
+Then verify both together:
+
+```bash
+scripts/verify_deploy.sh https://<your-backend>.onrender.com https://<your-frontend>.vercel.app
+```
+
+Checks backend liveness/readiness/OpenAPI docs and that the frontend
+serves the SPA (including a client-side route, to catch a missing
+`vercel.json` rewrite) — the same shape of check CI's `docker` job runs
+against the local Compose stack, against the real deployed URLs.
+
+### Docker Compose on a single host
 
 The included `docker-compose.yml` is deployment-ready as-is for a
-single-VM setup (no orchestrator): copy the repo (or just
-`docker-compose.yml` + a trained `ml/models/artifacts/` directory) to the
-host, then `docker compose up -d --build`. Put a TLS-terminating reverse
-proxy (Caddy, Traefik, or your cloud's load balancer) in front of port
-8080. See [`.env.example`](.env.example) for every override Compose
-picks up automatically (ports, log level, pinned model version, CORS).
+single-VM setup (no orchestrator): copy the repo to the host, then
+`docker compose up -d --build`. Put a TLS-terminating reverse proxy
+(Caddy, Traefik, or your cloud's load balancer) in front of port 8080.
+See [`.env.example`](.env.example) for every override Compose picks up
+automatically (ports, log level, pinned model version, CORS).
 
-### 2. Backend and frontend deployed separately
+### Backend and frontend deployed separately (any other platform)
 
 **Backend** — any container platform that runs a Dockerfile and injects
-`$PORT` (Render, Railway, Fly.io, Cloud Run, ECS, ...):
-
-- Build: `docker build -f backend/Dockerfile -t sentinelml-backend .` (context
-  must be the repo root — see the comment at the top of the Dockerfile).
-- The image doesn't bake in a trained model (`ml/models/artifacts/` is
-  gitignored and often large) — mount it as a volume, bake a derived image
-  `FROM sentinelml-backend` that `COPY`s artifacts in, or fetch them from
-  object storage at startup before `uvicorn` starts.
-- `sentinel serve` (the image's `CMD` runs `uvicorn` directly) respects
-  `$PORT` — see [`backend/.env.example`](backend/.env.example) for every
-  other setting. Set `SENTINELML_CORS_ALLOW_ORIGINS` to the frontend's
-  real origin, since it's no longer same-origin through nginx.
-- Health/readiness probes: `GET /api/v1/health` (liveness),
-  `GET /api/v1/ready` (readiness) — see [`backend/README.md`](backend/README.md#endpoints).
+`$PORT` (Railway, Fly.io, Cloud Run, ECS, ...) works the same way Render
+does above: `docker build -f backend/Dockerfile -t sentinelml-backend .`
+(context must be the repo root — see the comment at the top of the
+Dockerfile), set `SENTINELML_CORS_ALLOW_ORIGINS`/`_REGEX` to the
+frontend's real origin, and point health/readiness probes at
+`GET /api/v1/health` / `GET /api/v1/ready`
+(see [`backend/README.md`](backend/README.md#endpoints)).
 
 **Frontend** — either the nginx Docker image (`frontend/Dockerfile`) on
-any container platform, or as a static site (Vercel, Netlify, Cloudflare
-Pages, S3+CloudFront) built via `npm run build` (outputs `frontend/dist/`).
-For a static host, set `VITE_API_BASE_URL` to the backend's full URL at
-build time (it's a Vite compile-time variable, not a runtime one) — see
-[`frontend/.env.example`](frontend/.env.example).
+any container platform, or as a static site (Netlify, Cloudflare Pages,
+S3+CloudFront) built via `npm run build` (outputs `frontend/dist/`). Set
+`VITE_API_BASE_URL` to the backend's full URL at build time either way —
+see [`frontend/.env.example`](frontend/.env.example).
 
-### 3. Kubernetes / a real orchestrator
+### Kubernetes / a real orchestrator
 
 Not included in this repo yet (see [Future improvements](#future-improvements))
 — the Docker images are orchestrator-agnostic, so writing Deployment/Service/

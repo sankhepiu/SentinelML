@@ -21,8 +21,12 @@ flags (see `--help` for the full list):
 | `--n-estimators` | `200` | tree count, applied to every candidate model |
 | `--random-state` | `42` | training seed |
 
-`--models-dir` is gitignored (only `.gitkeep` is tracked) -- trained models
-are regenerated locally, not committed.
+`--models-dir` defaults to `ml/models/artifacts`, which **is** committed
+(unlike `ml/data/raw/`/`ml/data/processed/`) -- see the root README's
+[Deployment](../../README.md#deployment) section for why: a hosted backend
+deploy needs a trained model baked into its image. Running this command
+locally adds a new `vN/` version on top of what's committed; commit it (or
+not) as you would any other change.
 
 ## What it does, in order
 

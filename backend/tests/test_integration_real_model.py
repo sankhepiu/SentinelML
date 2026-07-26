@@ -1,10 +1,9 @@
 """End-to-end integration test against the REAL trained model artifacts.
 
-Skipped when `ml/models/artifacts/v1` doesn't exist -- e.g. a fresh CI
-checkout, where Milestones 1-3 haven't been run against real data (those
-artifacts are gitignored and generated locally by `sentinel preprocess` /
-`sentinel train`). Every other backend test uses synthetic artifacts (see
-conftest.py) so the suite doesn't depend on this.
+`ml/models/artifacts/v1` is committed to the repo, so this runs in CI too;
+the skip guard only matters for a checkout where it's been deliberately
+removed or replaced. Every other backend test uses synthetic artifacts
+(see conftest.py) so the suite doesn't depend on this.
 """
 
 from __future__ import annotations

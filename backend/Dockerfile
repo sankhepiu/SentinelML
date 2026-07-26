@@ -64,13 +64,15 @@ USER appuser
 
 EXPOSE 8000
 
+# $PORT (unset locally, defaults to 8000; injected by Render/Railway/Cloud
+# Run/etc. in hosted deployments) has to be read at container-start time,
+# not build time -- shell form so it's expanded by `sh -c`, not baked in.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)" || exit 1
+    CMD python -c "import os, urllib.request as u; u.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\", 8000)}/api/v1/health', timeout=3)" || exit 1
 
-# Model artifacts (ml/models/artifacts/) are not baked into the image --
-# they're gitignored, training-run-specific, and often large. Mount them
-# (docker-compose.yml does this for local dev) or bake a custom image on
-# top of this one for a real deployment; see the README's deployment
-# section. Without them the service still starts -- /health is 200,
-# /ready is 503 until artifacts are present.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+# Model artifacts (ml/models/artifacts/) ARE committed to this repo (see
+# .gitignore) specifically so this image is self-contained for a hosted
+# deploy -- no volume mount, no fetch-at-startup step. Retrain and commit a
+# new version to update the served model; see the README's deployment
+# section for the platforms that mount a volume instead.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --no-access-log"]

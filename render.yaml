@@ -1,0 +1,39 @@
+# Render Blueprint for the backend inference API. Import this repo at
+# https://dashboard.render.com/select-repo?type=blueprint and Render reads
+# this file automatically -- see the README's Deployment section for the
+# full walkthrough (this alone doesn't cover the frontend, which is
+# deployed to Vercel separately, or the one-time CORS origin you set after
+# the frontend's URL is known).
+services:
+  - type: web
+    name: sentinelml-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    # Build context must be the repo root -- backend/Dockerfile COPYs in
+    # ml/ (the sentinelml package it depends on via a uv workspace source)
+    # as well as backend/. See the comment at the top of that Dockerfile.
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: SENTINELML_ENVIRONMENT
+        value: production
+      - key: SENTINELML_LOG_LEVEL
+        value: INFO
+      # Pin a specific trained-model version instead of always serving the
+      # latest one under ml/models/artifacts/. Leave blank for "latest".
+      - key: SENTINELML_MODEL_VERSION
+        value: ""
+      # Vercel mints a new origin per preview deployment, which a plain
+      # allow-list can't cover -- this regex matches the production domain
+      # plus every preview subdomain for a Vercel project named
+      # "sentinelml". Adjust to your actual project name/custom domain.
+      - key: SENTINELML_CORS_ALLOW_ORIGIN_REGEX
+        value: "^https://sentinelml.*\\.vercel\\.app$"
+      # Set once the frontend has a fixed production domain (a JSON array,
+      # e.g. ["https://sentinelml.vercel.app"]) -- sync: false means Render
+      # leaves this to be set manually in the dashboard rather than
+      # tracking it in this file. Not required for the regex above to work.
+      - key: SENTINELML_CORS_ALLOW_ORIGINS
+        sync: false

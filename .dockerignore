@@ -14,11 +14,12 @@
 frontend/node_modules
 frontend/dist
 
-# Large/binary and environment-specific -- not baked into the image, see
-# backend/Dockerfile and docker-compose.yml.
+# Large/binary and not needed to run a deployment -- not baked into the
+# image. ml/models/artifacts is deliberately NOT listed here: it's
+# committed (see .gitignore) and does need to be in the build context so
+# backend/Dockerfile can COPY it in.
 ml/data/raw
 ml/data/processed
-ml/models/artifacts
 docs/reports/figures
 
 .env

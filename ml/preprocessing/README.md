@@ -19,8 +19,12 @@ Useful flags (all optional, see `--help` for the full list):
 | `--random-state` | `42` | split seed |
 | `--low-variance-threshold` | `0.01` | normalized-variance cutoff below which a feature is dropped |
 
-Both output directories are gitignored (only their `.gitkeep` is tracked) --
-processed data and fitted artifacts are regenerated locally, not committed.
+`--output-dir` (`ml/data/processed`) is gitignored (only its `.gitkeep` is
+tracked) -- processed data is regenerated locally, not committed.
+`--artifacts-dir` (`ml/models/artifacts/preprocessing`), by contrast, **is**
+committed -- it's needed at inference time, so a hosted backend deploy
+needs it baked into the image; see the root README's
+[Deployment](../../README.md#deployment) section.
 
 ## What it does, in order
 

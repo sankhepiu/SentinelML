@@ -112,6 +112,7 @@ directory) -- see `app/core/config.py`:
 | `SENTINELML_MODEL_REGISTRY_PATH` | `../ml/models/artifacts` | Root directory `ModelRegistry` resolves versions from. Relative paths are anchored to `backend/`, not the process's CWD. |
 | `SENTINELML_LOG_LEVEL` | `INFO` | Root logger level. |
 | `SENTINELML_CORS_ALLOW_ORIGINS` | `["http://localhost:5173"]` | Allowed CORS origins (the Vite dev server by default). |
+| `SENTINELML_CORS_ALLOW_ORIGIN_REGEX` | unset | Regex alternative/addition to the list above -- an origin is allowed if it matches either. Useful for platforms (Vercel) that mint a new origin per preview deployment. |
 
 ## Performance
 
@@ -127,5 +128,5 @@ call rather than looping per row.
 10 estimators) per test session so most tests exercise the real
 preprocessing -> model -> API path without needing the actual CICIDS2017
 dataset. `test_integration_real_model.py` additionally runs against the
-real trained artifacts under `ml/models/artifacts/` when present locally
-(skipped in CI, where those gitignored artifacts don't exist).
+real trained artifacts under `ml/models/artifacts/` -- committed to the
+repo, so this runs in CI too, not just locally.

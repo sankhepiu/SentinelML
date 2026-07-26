@@ -78,10 +78,10 @@ jobs:
       - name: Sync workspace
         run: uv sync --all-packages
 
-      # No trained model artifacts exist in CI (ml/models/artifacts/ is
-      # gitignored) -- this verifies the real CLI-launched process starts
-      # cleanly and reports the correct not-ready state, not just that
-      # pytest's TestClient can construct an app in-process.
+      # ml/models/artifacts/ is committed, so this checkout has a real
+      # trained model -- this verifies the real CLI-launched process starts
+      # cleanly and actually loads it, not just that pytest's TestClient
+      # can construct an app in-process.
       - name: Start the API
         run: |
           nohup uv run sentinel serve --port 8000 > server.log 2>&1 &
@@ -106,11 +106,11 @@ jobs:
           cat /tmp/health.json
           test "$status" = "200"
 
-      - name: Verify /ready correctly reports not-ready without a trained model
+      - name: Verify /ready reports the committed model as loaded
         run: |
           status=$(curl -s -o /tmp/ready.json -w '%{http_code}' http://127.0.0.1:8000/api/v1/ready)
           cat /tmp/ready.json
-          test "$status" = "503"
+          test "$status" = "200"
 
       - name: Verify the OpenAPI schema is well-formed
         run: curl -sf http://127.0.0.1:8000/openapi.json | uv run python -c "import json,sys; json.load(sys.stdin)"
@@ -152,10 +152,10 @@ jobs:
       - name: Verify the backend directly
         run: |
           curl -sf http://127.0.0.1:8000/api/v1/health
-          # No trained model artifacts are mounted in CI -- /ready should
-          # correctly report 503, not crash or falsely report 200.
+          # ml/models/artifacts/ is committed and baked into the image, so
+          # /ready should report the model as loaded, not 503.
           status=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/v1/ready)
-          test "$status" = "503"
+          test "$status" = "200"
 
       - name: Verify the frontend serves the SPA
         run: |

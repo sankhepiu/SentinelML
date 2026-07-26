@@ -2,13 +2,12 @@
 # http://localhost:8080. See README.md for the full walkthrough and
 # deployment (as opposed to local-compose) instructions.
 #
-# The backend needs trained model artifacts to actually serve predictions
-# (see ml/preprocessing/README.md and ml/training/README.md) -- they're
-# gitignored and mounted read-only here rather than baked into the image,
-# so retraining doesn't require a rebuild. Without them the backend still
-# starts; /api/v1/ready and the prediction endpoints just report 503 until
-# `uv run sentinel preprocess` + `uv run sentinel train` have been run at
-# least once on the host.
+# ml/models/artifacts/ (trained model + preprocessing pipeline) is
+# committed to the repo and baked into the backend image, so this works
+# out of the box on a fresh clone. It's also mounted read-only here,
+# overriding the baked-in copy with whatever's on the host -- so
+# retraining (`uv run sentinel preprocess` + `uv run sentinel train`)
+# only needs a restart, not a rebuild, to pick up a new version.
 #
 # Every ${VAR:-default} below is overridable via a root-level `.env` file
 # (Compose loads it automatically -- no `env_file:` directive needed; see

@@ -15,14 +15,19 @@ htmlcov/
 .env.*
 !.env.example
 
-# ML artifacts & data (tracked via .gitkeep placeholders, not content)
+# ML data (tracked via .gitkeep placeholders, not content) -- large,
+# regenerated locally from the CICIDS2017 download, and not needed to run
+# a deployment (only the already-trained artifacts below are).
 ml/data/raw/*
 !ml/data/raw/.gitkeep
 ml/data/processed/*
 !ml/data/processed/.gitkeep
-ml/models/artifacts/*
-!ml/models/artifacts/.gitkeep
-*.joblib
+
+# ml/models/artifacts/ (trained model + preprocessing pipeline) IS
+# committed, unlike the two above -- Milestone 7's Render deploy bakes it
+# straight into the backend Docker image, so there's no volume mount or
+# object-storage fetch step needed in production. See the README's
+# Deployment section.
 
 # Frontend
 frontend/node_modules/
