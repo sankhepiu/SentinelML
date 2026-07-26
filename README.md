@@ -2,6 +2,8 @@
 
 ![CI](https://github.com/sankhepiu/SentinelML/actions/workflows/ci.yml/badge.svg)
 
+**Live:** [dashboard](https://sentinel-ml-omega.vercel.app/) · [API docs](https://sentinelml-backend.onrender.com/docs) — see [Deployment](#deployment) for how this is hosted.
+
 **An end-to-end network intrusion detection platform** — from raw packet-capture
 flow data to a served, monitored, dashboarded machine learning model. Built on
 the [CICIDS2017](https://www.unb.ca/cic/datasets/ids-2017.html) dataset, it
@@ -294,7 +296,13 @@ have a working deployment. Retrain and commit a new version
 
 This is the reference deployment (Milestone 7) and the simplest path to a
 publicly reachable URL — no server to manage, both platforms build
-straight from this GitHub repo on every push to `main`.
+straight from this GitHub repo on every push to `main`. Live instance:
+
+- **Dashboard:** https://sentinel-ml-omega.vercel.app/
+- **API:** https://sentinelml-backend.onrender.com (interactive docs at [`/docs`](https://sentinelml-backend.onrender.com/docs))
+
+(Render's free plan spins the backend down after 15 minutes idle — the
+first request after a while will take ~30–60s while it cold-starts.)
 
 **1. Backend → Render**
 
@@ -305,12 +313,13 @@ straight from this GitHub repo on every push to `main`.
 - Render injects `$PORT` automatically; the backend Dockerfile's `CMD`
   reads it (`uvicorn ... --port ${PORT:-8000}`) — nothing to configure.
 - `render.yaml` also sets `SENTINELML_CORS_ALLOW_ORIGIN_REGEX` to
-  `^https://sentinelml.*\.vercel\.app$`, which matches both the
-  production Vercel domain and every per-branch preview deployment for a
-  Vercel project named `sentinelml`. **If you name the Vercel project
-  something else, edit that regex before deploying** (or add the exact
-  production URL to `SENTINELML_CORS_ALLOW_ORIGINS` in the Render
-  dashboard once you have it — see [`backend/.env.example`](backend/.env.example)).
+  `^https://sentinel-ml.*\.vercel\.app$`, which matches both the
+  production Vercel domain and every per-branch preview deployment for
+  this project's Vercel domain (`sentinel-ml-omega.vercel.app`). **If you
+  fork this and your Vercel project gets a different domain, edit that
+  regex before deploying** (or add the exact production URL to
+  `SENTINELML_CORS_ALLOW_ORIGINS` in the Render dashboard once you have
+  it — see [`backend/.env.example`](backend/.env.example)).
 - First deploy takes a few minutes (installs `build-essential` +
   compiles the uv-managed Python env). Once live, confirm at
   `https://<your-service>.onrender.com/api/v1/health` and `/api/v1/ready`

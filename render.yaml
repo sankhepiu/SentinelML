@@ -27,13 +27,14 @@ services:
         value: ""
       # Vercel mints a new origin per preview deployment, which a plain
       # allow-list can't cover -- this regex matches the production domain
-      # plus every preview subdomain for a Vercel project named
-      # "sentinelml". Adjust to your actual project name/custom domain.
+      # (sentinel-ml-omega.vercel.app) plus every preview subdomain Vercel
+      # mints for the same project (sentinel-ml-omega-<hash>-<user>.vercel.app).
+      # Adjust if the Vercel project is ever renamed.
       - key: SENTINELML_CORS_ALLOW_ORIGIN_REGEX
-        value: "^https://sentinelml.*\\.vercel\\.app$"
-      # Set once the frontend has a fixed production domain (a JSON array,
-      # e.g. ["https://sentinelml.vercel.app"]) -- sync: false means Render
-      # leaves this to be set manually in the dashboard rather than
-      # tracking it in this file. Not required for the regex above to work.
+        value: "^https://sentinel-ml.*\\.vercel\\.app$"
+      # Set only if a custom domain is added that the regex above wouldn't
+      # match (a JSON array, e.g. ["https://sentinelml.example.com"]) --
+      # sync: false means Render leaves this to be set manually in the
+      # dashboard rather than tracking it in this file.
       - key: SENTINELML_CORS_ALLOW_ORIGINS
         sync: false
